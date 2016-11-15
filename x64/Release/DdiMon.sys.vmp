@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Document Version="2">
+    <Protection InputFileName="DdiMon.sys" Options="857032">
+        <Messages />
+        <Folders />
+        <Procedures>
+            <Procedure MapAddress='VMProtectMarker &quot;Driver_Dispatch&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DdimonpHandleNtOpenProcess&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DdimonpHandleNtCreateUserProcess&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DdimonpHandleNtCreateProcessEx&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;GetKeServiceDescriptorTable64&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DriverpDriverUnload&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DriverEntry&quot;' IncludedInCompilation="0" Options="0" CompilationType="2" />
+            <Procedure MapAddress='VMProtectMarker &quot;CreateDevice&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DdimonInitialization&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DdimonpEnumExportedSymbols&quot;' Options="0" />
+            <Procedure MapAddress='VMProtectMarker &quot;DdimonpEnumExportedSymbolsCallback&quot;' Options="0" />
+        </Procedures>
+        <Objects />
+    </Protection>
+    <DLLBox>
+        <Folders />
+    </DLLBox>
+    <Script />
+    <LicenseManager />
+</Document>
