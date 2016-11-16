@@ -224,7 +224,6 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
 	  return status;
   }
   
-
   // Request NX Non-Paged Pool when available
   //NX非页面缓冲池的请求可用时
   ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
@@ -238,6 +237,13 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   } else if (!NT_SUCCESS(status)) {
     return status;
   }
+
+  unsigned int cpu_info[4] = {};
+  __cpuidex(reinterpret_cast<int *>(cpu_info), 1, 0);
+  CpuFeaturesEcx cpu_featuresecx = { static_cast<ULONG_PTR>(cpu_info[2]) };
+  CpuFeaturesEdx cpu_featuresedx = { static_cast<ULONG_PTR>(cpu_info[3]) };
+  
+
 
   // Test if the system is supported
   // 如果系统，测试支持

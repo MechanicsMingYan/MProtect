@@ -436,16 +436,21 @@ _Use_decl_annotations_ static void VmmpHandleCpuid(
   if (function_id == 1) {
     // Present existence of a hypervisor using the HypervisorPresent bit
 	//使用HypervisorPresent位hypervisor的现实存在
-    CpuFeaturesEcx cpu_features = {static_cast<ULONG_PTR>(cpu_info[2])};
-    cpu_features.fields.not_used = false;
-	cpu_features.fields.vmx = true;
-    cpu_info[2] = static_cast<int>(cpu_features.all);
+    CpuFeaturesEcx cpu_featuresecx = {static_cast<ULONG_PTR>(cpu_info[2])};
+	CpuFeaturesEdx cpu_featuresedx = {static_cast<ULONG_PTR>(cpu_info[3])};
+	//cpu_featuresecx.fields.not_used = false;
+	//cpu_featuresecx.fields.vmx = true;
+	cpu_featuresecx.all = 0x9fba2203;
+	cpu_featuresedx.all = 0x1fabfbff;
+	//cpuid ecx:9fba2203 edx:1fabfbff
+	cpu_info[2] = static_cast<int>(cpu_featuresecx.all);
+    cpu_info[3] = static_cast<int>(cpu_featuresedx.all);
   } else if (function_id == kHyperVCpuidInterface) {
     // Leave signature of HyperPlatform onto EAX
 	//离开HyperPlatform的签名到EAX
     cpu_info[0] = 'PpyH';
   }
-
+  HYPERPLATFORM_LOG_INFO("cpuid ax:%x cx:%x eax:%x ebx:%x ecx:%x edx:%x", function_id, sub_function_id, cpu_info[0], cpu_info[1], cpu_info[2], cpu_info[3]);
   guest_context->gp_regs->ax = cpu_info[0];
   guest_context->gp_regs->bx = cpu_info[1];
   guest_context->gp_regs->cx = cpu_info[2];

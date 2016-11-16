@@ -1,4 +1,3 @@
-
 // MProtectDlg.cpp : 实现文件
 //
 
@@ -78,41 +77,42 @@ CMProtectDlg::CMProtectDlg(CWnd* pParent /*=NULL*/)
 
 	char key[512] = { 0 };
 	char hwid[512] = { 0 };
-	/*
-	机器码效验
-	*/
 	g_IniPathA = ::GetAppFolder(true) + "Config.ini";
 	g_VdPath = GetAppFolder() + L"VAuth.dll";
-	GetPrivateProfileStringA("INI", "KEY", 0, key, 512, g_IniPathA.c_str());
-	CopyFile(g_VdPath, L"C:\\Windows\\VAuth.dll", true);
-	::Initialize("{06415CFF-552B-4202-9673-85231E98B4E7}");
-	int a_reg = ::Auth(key);
-	switch (a_reg)
+	wchar_t * sCommandLine = GetCommandLine();
+	if (!wcsstr(sCommandLine, L"-s"))
 	{
-	case 0:
-		goto goto_en;
-	case -1:
-		AfxMessageBox(L"不存在此注册码");
-		break;
-	case -2:
-		AfxMessageBox(L"注册码被禁用");
-		break;
-	case -3:
-		AfxMessageBox(L"绑定机器超限");
-		break;
-	case -4:
-		AfxMessageBox(L"注册码已在线");
-		break;
-	case -5:
-		AfxMessageBox(L"已过期");
-		break;
-	default:
-		break;
+		/*
+		机器码效验
+		*/
+		GetPrivateProfileStringA("INI", "KEY", 0, key, 512, g_IniPathA.c_str());
+		CopyFile(g_VdPath, L"C:\\Windows\\VAuth.dll", true);
+		::Initialize("{06415CFF-552B-4202-9673-85231E98B4E7}");
+		int a_reg = ::Auth(key);
+		switch (a_reg)
+		{
+		case 0:
+			goto goto_en;
+		case -1:
+			AfxMessageBox(L"不存在此注册码");
+			break;
+		case -2:
+			AfxMessageBox(L"注册码被禁用");
+			break;
+		case -3:
+			AfxMessageBox(L"绑定机器超限");
+			break;
+		case -4:
+			AfxMessageBox(L"注册码已在线");
+			break;
+		case -5:
+			AfxMessageBox(L"已过期");
+			break;
+		default:
+			break;
+		}
+		exit(0);
 	}
-	exit(0);
-
-
-
 goto_en:
 	DWORD dwRetBytes = 0;
 	m_DriverPath = GetAppFolder() + L"DdiMon.sys";
