@@ -100,6 +100,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>VMProtectDDK32.lib;$(OutDir)capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

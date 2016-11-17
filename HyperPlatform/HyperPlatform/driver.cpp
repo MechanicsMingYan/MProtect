@@ -224,12 +224,11 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
 	  return status;
   }
   
+
   // Request NX Non-Paged Pool when available
-  //NX非页面缓冲池的请求可用时
   ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
 
   // Initialize log functions
-  // 初始化日志功能
   bool need_reinitialization = false;
   status = LogInitialization(kLogLevel, kLogFilePath);
   if (status == STATUS_REINITIALIZATION_NEEDED) {
@@ -238,22 +237,13 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
     return status;
   }
 
-  unsigned int cpu_info[4] = {};
-  __cpuidex(reinterpret_cast<int *>(cpu_info), 1, 0);
-  CpuFeaturesEcx cpu_featuresecx = { static_cast<ULONG_PTR>(cpu_info[2]) };
-  CpuFeaturesEdx cpu_featuresedx = { static_cast<ULONG_PTR>(cpu_info[3]) };
-  
-
-
   // Test if the system is supported
-  // 如果系统，测试支持
   if (!DriverpIsSuppoetedOS()) {
     LogTermination();
     return STATUS_CANCELLED;
   }
 
   // Initialize global variables
-  //初始化全局变量
   status = GlobalObjectInitialization();
   if (!NT_SUCCESS(status)) {
     LogTermination();
@@ -261,7 +251,6 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   }
 
   // Initialize perf functions
-  //初始化性能的功能
   status = PerfInitialization();
   if (!NT_SUCCESS(status)) {
     GlobalObjectTermination();
@@ -270,7 +259,6 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   }
 
   // Initialize utility functions
-  //初始化实用程序函数
   status = UtilInitialization(driver_object);
   if (!NT_SUCCESS(status)) {
     PerfTermination();
@@ -280,7 +268,6 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   }
 
   // Initialize power callback
-  //初始化电源回调
   status = PowerCallbackInitialization();
   if (!NT_SUCCESS(status)) {
     UtilTermination();
@@ -291,7 +278,6 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   }
 
   // Initialize hot-plug callback
-  //初始化热插拔回调
   status = HotplugCallbackInitialization();
   if (!NT_SUCCESS(status)) {
     PowerCallbackTermination();
@@ -303,7 +289,6 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   }
 
   // Virtualize all processors
-  //虚拟化的所有处理器
   status = VmInitialization();
   if (!NT_SUCCESS(status)) {
     HotplugCallbackTermination();
@@ -318,7 +303,6 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
 
   
   // Register re-initialization for the log functions if needed
-  //如果需要，为日志功能 注册重新初始化
   if (need_reinitialization) {
     LogRegisterReinitialization(driver_object);
   }

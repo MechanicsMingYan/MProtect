@@ -1,0 +1,17 @@
+﻿  stdafx.cpp
+  MProtectDlg.cpp
+  MProtect.cpp
+  DriverHelp.cpp
+  dlgProcessProtect.cpp
+e:\onedrive\程序代码\repos\mprotect\mprotect\dlgprocessprotect.cpp(111): warning C4996: 'wcscpy': This function or variable may be unsafe. Consider using wcscpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstring.h(121): note: 参见“wcscpy”的声明
+e:\onedrive\程序代码\repos\mprotect\mprotect\dlgprocessprotect.cpp(122): warning C4996: 'wcscpy': This function or variable may be unsafe. Consider using wcscpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstring.h(121): note: 参见“wcscpy”的声明
+  dlgProcessIsolate.cpp
+e:\onedrive\程序代码\repos\mprotect\mprotect\dlgprocessisolate.cpp(90): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _itoa. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(1316): note: 参见“itoa”的声明
+e:\onedrive\程序代码\repos\mprotect\mprotect\dlgprocessisolate.cpp(163): warning C4996: '_itow': This function or variable may be unsafe. Consider using _itow_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstdlib.h(67): note: 参见“_itow”的声明
+  正在生成代码...
+  MProtect.vcxproj -> E:\OneDrive\程序代码\Repos\MProtect\Debug\MProtect.exe
+  MProtect.vcxproj -> E:\OneDrive\程序代码\Repos\MProtect\Debug\MProtect.pdb (Partial PDB)

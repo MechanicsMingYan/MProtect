@@ -760,14 +760,14 @@ DdimonInitialization(SharedShadowHookData* shared_sh_data) {
     return status;
   }
   //创建进程检测线程
-  //HANDLE threadHandle = NULL;
-  //auto lstatus = PsCreateSystemThread(&threadHandle,
-	 // 0,
-	 // NULL, //或者THREAD_ALL_ACCESS  
-	 // NtCurrentProcess(),
-	 // NULL,
-	 // (PKSTART_ROUTINE)ThreadProc,
-	 // NULL);
+  HANDLE threadHandle = NULL;
+  auto lstatus = PsCreateSystemThread(&threadHandle,
+	  0,
+	  NULL, //或者THREAD_ALL_ACCESS  
+	  NtCurrentProcess(),
+	  NULL,
+	  (PKSTART_ROUTINE)ThreadProc,
+	  NULL);
 
 
 

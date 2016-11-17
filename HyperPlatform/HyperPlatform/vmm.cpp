@@ -180,8 +180,6 @@ static VmExitHistory g_vmmp_vm_exit_history[kVmmpNumberOfProcessors]
 
 // A high level VMX handler called from AsmVmExitHandler().
 // Return true for vmresume, or return false for vmxoff.
-//高水平VMX从AsmVmExitHandler调用处理程序()。vmresume
-//返回true或返回false vmxoff。
 #pragma warning(push)
 #pragma warning(disable : 28167)
 _Use_decl_annotations_ bool __stdcall VmmVmExitHandler(VmmInitialStack *stack) {
@@ -194,7 +192,6 @@ _Use_decl_annotations_ bool __stdcall VmmVmExitHandler(VmmInitialStack *stack) {
   NT_ASSERT(stack->reserved == MAXULONG_PTR);
 
   // Capture the current guest state
-  //捕获当前的客人状态
   GuestContext guest_context = {stack,
                                 UtilVmRead(VmcsField::kGuestRflags),
                                 UtilVmRead(VmcsField::kGuestRip),
@@ -206,28 +203,23 @@ _Use_decl_annotations_ bool __stdcall VmmVmExitHandler(VmmInitialStack *stack) {
   VmmpSaveExtendedProcessorState(&guest_context);
 
   // Dispatch the current VM-exit event
-  //调度当前VM退出事件
   VmmpHandleVmExit(&guest_context);
 
   VmmpRestoreExtendedProcessorState(&guest_context);
 
   // See: Guidelines for Use of the INVVPID Instruction, and Guidelines for Use
   // of the INVEPT Instruction
-  //请参阅：INVVPID指令的使用指南，和使用指南
-  //INVEPT的指令
   if (!guest_context.vm_continue) {
     UtilInveptGlobal();
     UtilInvvpidAllContext();
   }
 
   // Restore guest's context
-  //恢复客人的上下文
   if (guest_context.irql < DISPATCH_LEVEL) {
     KeLowerIrql(guest_context.irql);
   }
 
   // Apply possibly updated CR8 by the handler
-  //处理程序 / 更新应用于CR8
   if (IsX64()) {
     __writecr8(guest_context.cr8);
   }
@@ -435,22 +427,15 @@ _Use_decl_annotations_ static void VmmpHandleCpuid(
 
   if (function_id == 1) {
     // Present existence of a hypervisor using the HypervisorPresent bit
-	//使用HypervisorPresent位hypervisor的现实存在
-    CpuFeaturesEcx cpu_featuresecx = {static_cast<ULONG_PTR>(cpu_info[2])};
-	CpuFeaturesEdx cpu_featuresedx = {static_cast<ULONG_PTR>(cpu_info[3])};
-	//cpu_featuresecx.fields.not_used = false;
-	//cpu_featuresecx.fields.vmx = true;
-	cpu_featuresecx.all = 0x9fba2203;
-	cpu_featuresedx.all = 0x1fabfbff;
-	//cpuid ecx:9fba2203 edx:1fabfbff
-	cpu_info[2] = static_cast<int>(cpu_featuresecx.all);
-    cpu_info[3] = static_cast<int>(cpu_featuresedx.all);
+    CpuFeaturesEcx cpu_features = {static_cast<ULONG_PTR>(cpu_info[2])};
+    cpu_features.fields.not_used = true;
+	//cpu_features.fields.vmx = false;
+    cpu_info[2] = static_cast<int>(cpu_features.all);
   } else if (function_id == kHyperVCpuidInterface) {
     // Leave signature of HyperPlatform onto EAX
-	//离开HyperPlatform的签名到EAX
     cpu_info[0] = 'PpyH';
   }
-  HYPERPLATFORM_LOG_INFO("cpuid ax:%x cx:%x eax:%x ebx:%x ecx:%x edx:%x", function_id, sub_function_id, cpu_info[0], cpu_info[1], cpu_info[2], cpu_info[3]);
+
   guest_context->gp_regs->ax = cpu_info[0];
   guest_context->gp_regs->bx = cpu_info[1];
   guest_context->gp_regs->cx = cpu_info[2];

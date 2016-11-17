@@ -145,6 +145,7 @@ inline ULONG GetSegmentLimit(_In_ ULONG selector) {
 #endif
 
 // Checks if a VMM can be installed, and so, installs it
+//检查，如果VMM可以安装，所以安装它
 _Use_decl_annotations_ NTSTATUS VmInitialization() {
   PAGED_CODE();
 
@@ -177,11 +178,14 @@ _Use_decl_annotations_ NTSTATUS VmInitialization() {
 }
 
 // Checks if the system supports virtualization
+// 检查系统是否支持虚拟化
 _Use_decl_annotations_ static bool VmpIsVmxAvailable() {
   PAGED_CODE();
 
   // See: DISCOVERING SUPPORT FOR VMX
   // If CPUID.1:ECX.VMX[bit 5]=1, then VMX operation is supported.
+  //请参阅：发现对VMX的支持 
+  //如果处理器的版本。1：ECX。 VMX[5位]=1，那么支持VMX操作。
   int cpu_info[4] = {};
   __cpuid(cpu_info, 1);
   const CpuFeaturesEcx cpu_features = {static_cast<ULONG_PTR>(cpu_info[2])};
@@ -192,6 +196,8 @@ _Use_decl_annotations_ static bool VmpIsVmxAvailable() {
 
   // See: BASIC VMX INFORMATION
   // The first processors to support VMX operation use the write-back type.
+  //请参阅：VMX基本信息 
+  //第一处理器以支持VMX操作使用回写类型。
   const Ia32VmxBasicMsr vmx_basic_msr = {UtilReadMsr64(Msr::kIa32VmxBasic)};
   if (static_cast<memory_type>(vmx_basic_msr.fields.memory_type) !=
       memory_type::kWriteBack) {
@@ -200,6 +206,7 @@ _Use_decl_annotations_ static bool VmpIsVmxAvailable() {
   }
 
   // See: ENABLING AND ENTERING VMX OPERATION
+  //请参阅：启用和进入VMX操作
   Ia32FeatureControlMsr vmx_feature_control = {
       UtilReadMsr64(Msr::kIa32FeatureControl)};
   if (!vmx_feature_control.fields.lock) {
@@ -1030,6 +1037,7 @@ _Use_decl_annotations_ static void VmpFreeSharedData(
 }
 
 // Tests if HyperPlatform is already installed
+//测试 如果HyperPlatform，已安装 
 _Use_decl_annotations_ static bool VmpIsHyperPlatformInstalled() {
   PAGED_CODE();
 
@@ -1039,12 +1047,12 @@ _Use_decl_annotations_ static bool VmpIsHyperPlatformInstalled() {
   if (!cpu_features.fields.not_used) {
     return false;
   }
-
   __cpuid(cpu_info, kHyperVCpuidInterface);
   return cpu_info[0] == 'PpyH';
 }
 
 // Virtualizes the specified processor
+//虚拟化指定的处理器
 _Use_decl_annotations_ NTSTATUS
 VmHotplugCallback(const PROCESSOR_NUMBER &proc_num) {
   PAGED_CODE();
