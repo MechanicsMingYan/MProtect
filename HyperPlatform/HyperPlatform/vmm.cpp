@@ -429,7 +429,6 @@ _Use_decl_annotations_ static void VmmpHandleCpuid(
     // Present existence of a hypervisor using the HypervisorPresent bit
     CpuFeaturesEcx cpu_features = {static_cast<ULONG_PTR>(cpu_info[2])};
     cpu_features.fields.not_used = true;
-	//cpu_features.fields.vmx = false;
     cpu_info[2] = static_cast<int>(cpu_features.all);
   } else if (function_id == kHyperVCpuidInterface) {
     // Leave signature of HyperPlatform onto EAX
@@ -748,13 +747,13 @@ _Use_decl_annotations_ static void VmmpHandleDrAccess(
     case MovDrDirection::kMoveToDr:
       // clang-format off
       switch (exit_qualification.fields.debugl_register) {
-        case 0: __writedr(0, *register_used); break;
-        case 1: __writedr(1, *register_used); break;
-        case 2: __writedr(2, *register_used); break;
-        case 3: __writedr(3, *register_used); break;
+        case 0: __writedr(0, 1); break;
+        case 1: __writedr(1, 2); break;
+        case 2: __writedr(2, 3); break;
+        case 3: __writedr(3, 4); break;
         case 4: __writedr(4, *register_used); break;
         case 5: __writedr(5, *register_used); break;
-        case 6: __writedr(6, *register_used); break;
+        case 6: __writedr(6, 69574564); break;
         case 7: UtilVmWrite(VmcsField::kGuestDr7, *register_used); break;
         default: break;
       }

@@ -63,15 +63,6 @@
     <ClCompile Include="..\HyperPlatform\HyperPlatform\power_callback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ksocket.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ktdi.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mdk.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ddi_mon.h">
@@ -90,9 +81,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\HyperPlatform\HyperPlatform\ia32_type.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HyperPlatform\HyperPlatform\kernel_stl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\HyperPlatform\HyperPlatform\log.h">
@@ -123,18 +111,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\HyperPlatform\HyperPlatform\power_callback.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VMProtectDDK.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ksocket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ktdi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mdk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

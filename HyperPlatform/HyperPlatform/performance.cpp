@@ -63,8 +63,6 @@ _Use_decl_annotations_ NTSTATUS PerfInitialization() {
 
   // No lock to avoid calling kernel APIs from VMM and race condition here is
   // not an issue.
-  //没有锁，以避免调用内核api从VMM和竞赛这里的情况是
-  //不是一个问题。
   perf_collector->Initialize(PerfpOutputRoutine, PerfpInitialOutputRoutine,
                              PerfpFinalOutputRoutine);
 

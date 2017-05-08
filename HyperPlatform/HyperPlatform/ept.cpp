@@ -137,8 +137,6 @@ _Use_decl_annotations_ bool EptIsEptAvailable() {
   // - extended page tables can be laid out in write-back memory
   // - INVEPT instruction with all possible types is supported
   // - INVVPID instruction with all possible types is supported
-  
-  
   Ia32VmxEptVpidCapMsr capability = {UtilReadMsr64(Msr::kIa32VmxEptVpidCap)};
   if (!capability.fields.support_page_walk_length4 ||
       !capability.fields.support_write_back_memory_type ||

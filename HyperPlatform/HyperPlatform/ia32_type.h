@@ -257,42 +257,41 @@ struct SegmentDesctiptorX64 {
 static_assert(sizeof(SegmentDesctiptorX64) == 16, "Size check");
 
 /// See: Feature Information Returned in the ECX Register
-///请参阅：功能ECX寄存器中返回的信息
 union CpuFeaturesEcx {
   ULONG32 all;
   struct {
-    ULONG32 sse3 : 1;       //！ <[0]simd流技术扩展3(SSE3) 
-    ULONG32 pclmulqdq : 1;  //！ <[1]PCLMULQDQ 
-    ULONG32 dtes64 : 1;     //！ <[2]64位DS区域
-    ULONG32 monitor : 1;    //！ <[3]显示器/等
-    ULONG32 ds_cpl : 1;     //！ <[4]CPL合格的调试存储 
-    ULONG32 vmx : 1;        //！ <[5]虚拟机技术 
-    ULONG32 smx : 1;        //！ <[6]安全模式扩展
-    ULONG32 est : 1;        //！ <[7]增强型英特尔Speedstep技术 
-    ULONG32 tm2 : 1;        //！ <[8]散热监控2 
-    ULONG32 ssse3 : 1;      //！ <[9]附加simd流技术扩展3
-    ULONG32 cid : 1;        //！ <[10]L1上下文ID 
-    ULONG32 sdbg : 1;       //！ <[11]IA32_DEBUG_INTERFACE MSR 
-    ULONG32 fma : 1;        //！ <[12]使用YMM状态FMA扩展
-    ULONG32 cx16 : 1;       //！ <[13]CMPXCHG16B 
-    ULONG32 xtpr : 1;       //！ <[14]xTPR更新控制
-    ULONG32 pdcm : 1;       //！ <[15]性能/调试能力MSR 
-    ULONG32 reserved : 1;   //！ <[16]保留 
-    ULONG32 pcid : 1;       //！ <[17]程序的上下文标识符 
-    ULONG32 dca : 1;        //！ <[18]回迁从内存映射设备
-    ULONG32 sse4_1 : 1;     //！ <[19]SSE4.1 
-    ULONG32 sse4_2 : 1;     //！ <[20]SSE4.2 
-    ULONG32 x2_apic : 1;    //！ <[21]x2APIC功能 
-    ULONG32 movbe : 1;      //！ <[22]MOVBE指令 
-    ULONG32 popcnt : 1;     //！ <[23]POPCNT指令
-    ULONG32 reserved3 : 1;  //！ <[24]使用TSC期限一次性操作 
-    ULONG32 aes : 1;        //！ <[25]AESNI指令 
-    ULONG32 xsave : 1;      //！ <[26]XSAVE/XRSTOR功能 
-    ULONG32 osxsave : 1;    //！ <[27]使XSETBV/XGETBV说明 
-    ULONG32 avx : 1;        //！ <[28]AVX指令扩展 
-    ULONG32 f16c : 1;       //！ <[29]16位浮点转换 
-    ULONG32 rdrand : 1;     //！ <[30]RDRAND指令 
-    ULONG32 not_used : 1;   //！ <[31]0(a.k.一。 HypervisorPresent)
+    ULONG32 sse3 : 1;       //!< [0] Streaming SIMD Extensions 3 (SSE3)
+    ULONG32 pclmulqdq : 1;  //!< [1] PCLMULQDQ
+    ULONG32 dtes64 : 1;     //!< [2] 64-bit DS Area
+    ULONG32 monitor : 1;    //!< [3] MONITOR/WAIT
+    ULONG32 ds_cpl : 1;     //!< [4] CPL qualified Debug Store
+    ULONG32 vmx : 1;        //!< [5] Virtual Machine Technology
+    ULONG32 smx : 1;        //!< [6] Safer Mode Extensions
+    ULONG32 est : 1;        //!< [7] Enhanced Intel Speedstep Technology
+    ULONG32 tm2 : 1;        //!< [8] Thermal monitor 2
+    ULONG32 ssse3 : 1;      //!< [9] Supplemental Streaming SIMD Extensions 3
+    ULONG32 cid : 1;        //!< [10] L1 context ID
+    ULONG32 sdbg : 1;       //!< [11] IA32_DEBUG_INTERFACE MSR
+    ULONG32 fma : 1;        //!< [12] FMA extensions using YMM state
+    ULONG32 cx16 : 1;       //!< [13] CMPXCHG16B
+    ULONG32 xtpr : 1;       //!< [14] xTPR Update Control
+    ULONG32 pdcm : 1;       //!< [15] Performance/Debug capability MSR
+    ULONG32 reserved : 1;   //!< [16] Reserved
+    ULONG32 pcid : 1;       //!< [17] Process-context identifiers
+    ULONG32 dca : 1;        //!< [18] prefetch from a memory mapped device
+    ULONG32 sse4_1 : 1;     //!< [19] SSE4.1
+    ULONG32 sse4_2 : 1;     //!< [20] SSE4.2
+    ULONG32 x2_apic : 1;    //!< [21] x2APIC feature
+    ULONG32 movbe : 1;      //!< [22] MOVBE instruction
+    ULONG32 popcnt : 1;     //!< [23] POPCNT instruction
+    ULONG32 reserved3 : 1;  //!< [24] one-shot operation using a TSC deadline
+    ULONG32 aes : 1;        //!< [25] AESNI instruction
+    ULONG32 xsave : 1;      //!< [26] XSAVE/XRSTOR feature
+    ULONG32 osxsave : 1;    //!< [27] enable XSETBV/XGETBV instructions
+    ULONG32 avx : 1;        //!< [28] AVX instruction extensions
+    ULONG32 f16c : 1;       //!< [29] 16-bit floating-point conversion
+    ULONG32 rdrand : 1;     //!< [30] RDRAND instruction
+    ULONG32 not_used : 1;   //!< [31] Always 0 (a.k.a. HypervisorPresent)
   } fields;
 };
 static_assert(sizeof(CpuFeaturesEcx) == 4, "Size check");
@@ -301,37 +300,37 @@ static_assert(sizeof(CpuFeaturesEcx) == 4, "Size check");
 union CpuFeaturesEdx {
   ULONG32 all;
   struct {
-    ULONG32 fpu : 1;        //！ <[0]浮点单元的片上 
-    ULONG32 vme : 1;        //！ <[1]虚拟8086模式增强 
-    ULONG32 de : 1;         //！ <[2]调试扩展程序
-    ULONG32 pse : 1;        //！ <[3]页大小扩展 
-    ULONG32 tsc : 1;        //！ <[4]时间戳计数器 
-    ULONG32 msr : 1;        //！ <[5]RDMSR和WRMSR说明
-    ULONG32 mce : 1;        //！ <[7]机器检查异常 
-    ULONG32 cx8 : 1;        //！ <[8]散热监控2 
-    ULONG32 apic : 1;       //！ <[9]APIC片上 
-    ULONG32 reserved1 : 1;  //！ <[10]保留
-    ULONG32 sep : 1;        //！ <[11]SYSENTER和SYSEXIT说明 
-    ULONG32 mtrr : 1;       //！ <[12]内存范围寄存器 
-    ULONG32 pge : 1;        //！ <[13]页全球位
-    ULONG32 mca : 1;        //！ <[14]机器检查架构 
-    ULONG32 cmov : 1;       //！ <[15]有条件的移动指令 
-    ULONG32 pat : 1;        //！ <[16]页属性表
-    ULONG32 pse36 : 1;      //！ <[17]36位页面大小扩展 
-    ULONG32 psn : 1;        //！ <[18]处理器序列号 
-    ULONG32 clfsh : 1;      //！ <[19]CLFLUSH指令
-    ULONG32 reserved2 : 1;  //！ <[20]保留 
-    ULONG32 ds : 1;         //！ <[21]的调试存储 
-    ULONG32 acpi : 1;       //！ <[22]TM和软件控制时钟 
-    ULONG32 mmx : 1;        //！ <[23]英特尔MMX技术
-    ULONG32 fxsr : 1;       //！ <[24]FXSAVE和FXRSTOR说明 
-    ULONG32 sse : 1;        //！ <[25]SSE 
-    ULONG32 sse2 : 1;       //！ <[26]SSE2 
-    ULONG32 ss : 1;         //！ <[27]自探听 
-    ULONG32 htt : 1;        //！ <[28]保留的最大APIC id字段有效 
-    ULONG32 tm : 1;         //！ <[29]散热监控 
-    ULONG32 reserved3 : 1;  //！ <[30]保留 
-    ULONG32 pbe : 1;        //！ <[31]挂起的分行符启用
+    ULONG32 fpu : 1;        //!< [0] Floating Point Unit On-Chip
+    ULONG32 vme : 1;        //!< [1] Virtual 8086 Mode Enhancements
+    ULONG32 de : 1;         //!< [2] Debugging Extensions
+    ULONG32 pse : 1;        //!< [3] Page Size Extension
+    ULONG32 tsc : 1;        //!< [4] Time Stamp Counter
+    ULONG32 msr : 1;        //!< [5] RDMSR and WRMSR Instructions
+    ULONG32 mce : 1;        //!< [7] Machine Check Exception
+    ULONG32 cx8 : 1;        //!< [8] Thermal monitor 2
+    ULONG32 apic : 1;       //!< [9] APIC On-Chip
+    ULONG32 reserved1 : 1;  //!< [10] Reserved
+    ULONG32 sep : 1;        //!< [11] SYSENTER and SYSEXIT Instructions
+    ULONG32 mtrr : 1;       //!< [12] Memory Type Range Registers
+    ULONG32 pge : 1;        //!< [13] Page Global Bit
+    ULONG32 mca : 1;        //!< [14] Machine Check Architecture
+    ULONG32 cmov : 1;       //!< [15] Conditional Move Instructions
+    ULONG32 pat : 1;        //!< [16] Page Attribute Table
+    ULONG32 pse36 : 1;      //!< [17] 36-Bit Page Size Extension
+    ULONG32 psn : 1;        //!< [18] Processor Serial Number
+    ULONG32 clfsh : 1;      //!< [19] CLFLUSH Instruction
+    ULONG32 reserved2 : 1;  //!< [20] Reserved
+    ULONG32 ds : 1;         //!< [21] Debug Store
+    ULONG32 acpi : 1;       //!< [22] TM and Software Controlled Clock
+    ULONG32 mmx : 1;        //!< [23] Intel MMX Technology
+    ULONG32 fxsr : 1;       //!< [24] FXSAVE and FXRSTOR Instructions
+    ULONG32 sse : 1;        //!< [25] SSE
+    ULONG32 sse2 : 1;       //!< [26] SSE2
+    ULONG32 ss : 1;         //!< [27] Self Snoop
+    ULONG32 htt : 1;        //!< [28] Max APIC IDs reserved field is Valid
+    ULONG32 tm : 1;         //!< [29] Thermal Monitor
+    ULONG32 reserved3 : 1;  //!< [30] Reserved
+    ULONG32 pbe : 1;        //!< [31] Pending Break Enable
   } fields;
 };
 static_assert(sizeof(CpuFeaturesEdx) == 4, "Size check");

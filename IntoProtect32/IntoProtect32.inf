@@ -1,0 +1,90 @@
+;
+; IntoProtect32.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=IntoProtect32.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+IntoProtect32.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%IntoProtect32.DeviceDesc%=IntoProtect32_Device, Root\IntoProtect32 ; TODO: edit hw-id
+
+[IntoProtect32_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+IntoProtect32.sys
+
+;-------------- Service installation
+[IntoProtect32_Device.NT.Services]
+AddService = IntoProtect32,%SPSVCINST_ASSOCSERVICE%, IntoProtect32_Service_Inst
+
+; -------------- IntoProtect32 driver install sections
+[IntoProtect32_Service_Inst]
+DisplayName    = %IntoProtect32.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\IntoProtect32.sys
+
+;
+;--- IntoProtect32_Device Coinstaller installation ------
+;
+
+[DestinationDirs]
+IntoProtect32_Device_CoInstaller_CopyFiles = 11
+
+[IntoProtect32_Device.NT.CoInstallers]
+AddReg=IntoProtect32_Device_CoInstaller_AddReg
+CopyFiles=IntoProtect32_Device_CoInstaller_CopyFiles
+
+[IntoProtect32_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[IntoProtect32_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[SourceDisksFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+[IntoProtect32_Device.NT.Wdf]
+KmdfService =  IntoProtect32, IntoProtect32_wdfsect
+[IntoProtect32_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "IntoProtect32 Installation Disk"
+IntoProtect32.DeviceDesc = "IntoProtect32 Device"
+IntoProtect32.SVCDESC = "IntoProtect32 Service"

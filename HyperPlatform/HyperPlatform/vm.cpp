@@ -145,7 +145,6 @@ inline ULONG GetSegmentLimit(_In_ ULONG selector) {
 #endif
 
 // Checks if a VMM can be installed, and so, installs it
-//检查，如果VMM可以安装，所以安装它
 _Use_decl_annotations_ NTSTATUS VmInitialization() {
   PAGED_CODE();
 
@@ -178,14 +177,11 @@ _Use_decl_annotations_ NTSTATUS VmInitialization() {
 }
 
 // Checks if the system supports virtualization
-// 检查系统是否支持虚拟化
 _Use_decl_annotations_ static bool VmpIsVmxAvailable() {
   PAGED_CODE();
 
   // See: DISCOVERING SUPPORT FOR VMX
   // If CPUID.1:ECX.VMX[bit 5]=1, then VMX operation is supported.
-  //请参阅：发现对VMX的支持 
-  //如果处理器的版本。1：ECX。 VMX[5位]=1，那么支持VMX操作。
   int cpu_info[4] = {};
   __cpuid(cpu_info, 1);
   const CpuFeaturesEcx cpu_features = {static_cast<ULONG_PTR>(cpu_info[2])};
@@ -196,8 +192,6 @@ _Use_decl_annotations_ static bool VmpIsVmxAvailable() {
 
   // See: BASIC VMX INFORMATION
   // The first processors to support VMX operation use the write-back type.
-  //请参阅：VMX基本信息 
-  //第一处理器以支持VMX操作使用回写类型。
   const Ia32VmxBasicMsr vmx_basic_msr = {UtilReadMsr64(Msr::kIa32VmxBasic)};
   if (static_cast<memory_type>(vmx_basic_msr.fields.memory_type) !=
       memory_type::kWriteBack) {
@@ -206,7 +200,6 @@ _Use_decl_annotations_ static bool VmpIsVmxAvailable() {
   }
 
   // See: ENABLING AND ENTERING VMX OPERATION
-  //请参阅：启用和进入VMX操作
   Ia32FeatureControlMsr vmx_feature_control = {
       UtilReadMsr64(Msr::kIa32FeatureControl)};
   if (!vmx_feature_control.fields.lock) {
@@ -361,7 +354,6 @@ _Use_decl_annotations_ static UCHAR *VmpBuildIoBitmaps() {
 }
 
 // Virtualize the current processor
-//当前处理器虚拟化
 _Use_decl_annotations_ static NTSTATUS VmpStartVm(void *context) {
   PAGED_CODE();
 
@@ -378,8 +370,6 @@ _Use_decl_annotations_ static NTSTATUS VmpStartVm(void *context) {
 
 // Allocates structures for virtualization, initializes VMCS and virtualizes
 // the current processor
-//分配虚拟化的结构，初始化VMCS和虚拟化
-//当前处理器
 _Use_decl_annotations_ static void VmpInitializeVm(
     ULONG_PTR guest_stack_pointer, ULONG_PTR guest_instruction_pointer,
     void *context) {
@@ -391,7 +381,6 @@ _Use_decl_annotations_ static void VmpInitializeVm(
   }
 
   // Allocate related structures
-  //分配相关的结构
   const auto processor_data =
       reinterpret_cast<ProcessorData *>(ExAllocatePoolWithTag(
           NonPagedPool, sizeof(ProcessorData), kHyperPlatformCommonPoolTag));
@@ -410,8 +399,6 @@ _Use_decl_annotations_ static void VmpInitializeVm(
 
   // Check if XSAVE/XRSTOR are available and save an instruction mask for all
   // supported user state components
-  //如果XSAVE / XRSTOR提供所有保存指示掩码，
-  //检查//支持的用户状态组件
   processor_data->xsave_inst_mask =
       RtlGetEnabledExtendedFeatures(static_cast<ULONG64>(-1));
   HYPERPLATFORM_LOG_DEBUG("xsave_inst_mask       = %p",
@@ -423,10 +410,6 @@ _Use_decl_annotations_ static void VmpInitializeVm(
     //
     // See: ENUMERATION OF CPU SUPPORT FOR XSAVE INSTRUCTIONS AND XSAVESUPPORTED
     // FEATURES
-	//分配一个足够大的XSAVE区域来存储所有支持的用户状态
-	//组件。 大小是总结页面大小的倍数，所以，
-	//地址实现了64K对齐的要求。// 
-	//请参阅：CPU支持XSAVE指示和XSAVESUPPORTED的枚举//功能
     int cpu_info[4] = {};
     __cpuidex(cpu_info, 0xd, 0);
     const auto xsave_area_size = ROUND_TO_PAGES(cpu_info[2]);  // ecx
@@ -438,7 +421,6 @@ _Use_decl_annotations_ static void VmpInitializeVm(
     RtlZeroMemory(processor_data->xsave_area, xsave_area_size);
   } else {
     // Use FXSAVE/FXRSTOR instead.
-	//而不是使用FXSAVE/FXRSTOR。
     int cpu_info[4] = {};
     __cpuid(cpu_info, 1);
     const CpuFeaturesEcx cpu_features_ecx = {static_cast<ULONG32>(cpu_info[2])};
@@ -459,7 +441,6 @@ _Use_decl_annotations_ static void VmpInitializeVm(
   }
 
   // Allocate other processor data fields
-  //分配其他处理器数据字段
   processor_data->vmm_stack_limit =
       UtilAllocateContiguousMemory(KERNEL_STACK_SIZE);
   if (!processor_data->vmm_stack_limit) {
@@ -599,7 +580,6 @@ _Use_decl_annotations_ static bool VmpInitializeVmcs(
 }
 
 // See: PREPARATION AND LAUNCHING A VIRTUAL MACHINE
-//请参阅：准备和启动虚拟机
 _Use_decl_annotations_ static bool VmpSetupVmcs(
     const ProcessorData *processor_data, ULONG_PTR guest_stack_pointer,
     ULONG_PTR guest_instruction_pointer, ULONG_PTR vmm_stack_pointer) {
@@ -612,7 +592,6 @@ _Use_decl_annotations_ static bool VmpSetupVmcs(
   __sidt(&idtr);
 
   // See: Algorithms for Determining VMX Capabilities
-  //请参阅：确定VMX能力的算法
   const auto use_true_msrs = Ia32VmxBasicMsr{
       UtilReadMsr64(
           Msr::kIa32VmxBasic)}.fields.vmx_capability_hint;
@@ -661,7 +640,6 @@ _Use_decl_annotations_ static bool VmpSetupVmcs(
       Msr::kIa32VmxProcBasedCtls2, vm_procctl2_requested.all)};
 
   // NOTE: Comment in any of those as needed
-  //注意：任何所需的那些评论
   const auto exception_bitmap =
       1 << InterruptionVector::kBreakpointException |
       // 1 << InterruptionVector::kGeneralProtectionException |
@@ -672,10 +650,6 @@ _Use_decl_annotations_ static bool VmpSetupVmcs(
   // - Where a bit is     masked, the shadow bit appears
   // - Where a bit is not masked, the actual bit appears
   // VM-exit occurs when a guest modifies any of those fields
-  // CR0和CR4位图设置 
-  //--一位蒙面，出现阴影位
-  //--一位没有蒙面，出现实际一点
-  //VM出入境客人修改任何这些字段时发生
   Cr0 cr0_mask = {};
   Cr4 cr4_mask = {};
 
@@ -684,11 +658,6 @@ _Use_decl_annotations_ static bool VmpSetupVmcs(
   // to CR4 (see Section 4.1.1) and the instruction is modifying any of CR0.CD,
   // CR0.NW, CR0.PG, CR4.PAE, CR4.PGE, CR4.PSE, or CR4.SMEP; then the PDPTEs are
   // loaded from the address in CR3.
-  //请参阅：PDPTE注册 如果PAE分页，
-  //将使用以下为CR0和MOV MOV的执行
-  //CR4(见4.1.1节)和指令修改任何CR0。光盘， 
-  //CR0。 NW，CR0。 PG，CR4。 PAE，CR4。 PGE，CR4。PSE或CR4。 SMEP；然后PDPTEs是
-  //从CR3中的地址加载。
   if (UtilIsX86Pae()) {
     cr0_mask.fields.pg = true;
     cr0_mask.fields.cd = true;
@@ -1037,7 +1006,6 @@ _Use_decl_annotations_ static void VmpFreeSharedData(
 }
 
 // Tests if HyperPlatform is already installed
-//测试 如果HyperPlatform，已安装 
 _Use_decl_annotations_ static bool VmpIsHyperPlatformInstalled() {
   PAGED_CODE();
 
@@ -1047,12 +1015,12 @@ _Use_decl_annotations_ static bool VmpIsHyperPlatformInstalled() {
   if (!cpu_features.fields.not_used) {
     return false;
   }
+
   __cpuid(cpu_info, kHyperVCpuidInterface);
   return cpu_info[0] == 'PpyH';
 }
 
 // Virtualizes the specified processor
-//虚拟化指定的处理器
 _Use_decl_annotations_ NTSTATUS
 VmHotplugCallback(const PROCESSOR_NUMBER &proc_num) {
   PAGED_CODE();

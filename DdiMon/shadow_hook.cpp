@@ -13,7 +13,8 @@
 #include "../HyperPlatform/HyperPlatform/log.h"
 #include "../HyperPlatform/HyperPlatform/util.h"
 #include "../HyperPlatform/HyperPlatform/ept.h"
-#include "../HyperPlatform/HyperPlatform/kernel_stl.h"
+#undef _HAS_EXCEPTIONS
+#define _HAS_EXCEPTIONS 0
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -35,7 +36,6 @@
 //
 
 // Copy of a page seen by a guest as a result of memory shadowing
-// 作为内存阴影的结果，guest虚拟机查看的页面的副本
 struct Page {
   UCHAR* page;  // A page aligned copy of a page
   Page();
@@ -43,7 +43,6 @@ struct Page {
 };
 
 // Contains a single steal thook information
-//包含单个窃取信息
 struct HookInformation {
   void* patch_address;  // An address where a hook is installed
   void* handler;        // An address of the handler routine
@@ -51,14 +50,10 @@ struct HookInformation {
   // A copy of a pages where patch_address belongs to. shadow_page_base_for_rw
   // is exposed to a guest for read and write operation against the page of
   // patch_address, and shadow_page_base_for_exec is exposed for execution.
-  // patch_address所属页面的副本。 shadow_page_base_for_rw
-  // 被暴露给客户进行读取和写入操作的页面
-  // patch_address，shadow_page_base_for_exec暴露执行。
   std::shared_ptr<Page> shadow_page_base_for_rw;
   std::shared_ptr<Page> shadow_page_base_for_exec;
 
   // Physical address of the above two copied pages
-  //上述两个复制页面的物理地址
   ULONG64 pa_base_for_rw;
   ULONG64 pa_base_for_exec;
 };
@@ -69,13 +64,11 @@ struct SharedShadowHookData {
 };
 
 // Data structure for each processor
-//每个处理器的数据结构
 struct ShadowHookData {
   const HookInformation* last_hook_info;  // Remember which hook hit the last
 };
 
 // A structure reflects inline hook code.
-//结构反映内联hook代码。
 #include <pshpack1.h>
 #if defined(_AMD64_)
 
@@ -172,7 +165,6 @@ static bool ShpIsShadowHookActive(
 //
 
 // Allocates per-processor shadow hook data
-//分配的每个处理器影子钩子数据
 _Use_decl_annotations_ EXTERN_C ShadowHookData* ShAllocateShadowHookData() {
   PAGED_CODE();
 
@@ -190,7 +182,6 @@ _Use_decl_annotations_ EXTERN_C void ShFreeShadowHookData(
 }
 
 // Allocates processor-shared shadow hook data
-//分配处理器共享影子钩子数据
 _Use_decl_annotations_ EXTERN_C SharedShadowHookData*
 ShAllocateSharedShaowHookData() {
   PAGED_CODE();
@@ -209,7 +200,6 @@ _Use_decl_annotations_ EXTERN_C void ShFreeSharedShadowHookData(
 }
 
 // Enables page shadowing for all hooks
-//为所有钩子启用页面阴影
 _Use_decl_annotations_ EXTERN_C NTSTATUS ShEnableHooks() {
   PAGED_CODE();
 
@@ -222,7 +212,6 @@ _Use_decl_annotations_ EXTERN_C NTSTATUS ShEnableHooks() {
 }
 
 // Disables page shadowing for all hooks
-//禁用所有挂钩的页面阴影
 _Use_decl_annotations_ EXTERN_C NTSTATUS ShDisableHooks() {
   PAGED_CODE();
 
@@ -235,7 +224,6 @@ _Use_decl_annotations_ EXTERN_C NTSTATUS ShDisableHooks() {
 }
 
 // Enables page shadowing for all hooks
-//为所有钩子启用页面阴影
 _Use_decl_annotations_ NTSTATUS ShEnablePageShadowing(
     EptData* ept_data, const SharedShadowHookData* shared_sh_data) {
   //HYPERPLATFORM_COMMON_DBG_BREAK();
@@ -247,7 +235,6 @@ _Use_decl_annotations_ NTSTATUS ShEnablePageShadowing(
 }
 
 // Disables page shadowing for all hooks
-//禁用所有挂钩的页面阴影
 _Use_decl_annotations_ void ShVmCallDisablePageShadowing(
     EptData* ept_data, const SharedShadowHookData* shared_sh_data) {
   //HYPERPLATFORM_COMMON_DBG_BREAK();
@@ -257,9 +244,9 @@ _Use_decl_annotations_ void ShVmCallDisablePageShadowing(
   }
 }
 
-// Handles #BP。 检查#BP是否发生在DeMon设置断点的地方，
-// 如果是，修改客户IP的内容以执行相应的
-// hook处理程序。
+// Handles #BP. Checks if the #BP happened on where DdiMon set a break point,
+// and if so, modifies the contents of guest's IP to execute a corresponding
+// hook handler.
 _Use_decl_annotations_ bool ShHandleBreakpoint(
     ShadowHookData* sh_data, const SharedShadowHookData* shared_sh_data,
     void* guest_ip) {
@@ -279,7 +266,7 @@ _Use_decl_annotations_ bool ShHandleBreakpoint(
   return true;
 }
 
-//处理MTF VM退出。 重新启用影子钩并清除MTF。
+// Handles MTF VM-exit. Re-enables the shadow hook and clears MTF.
 _Use_decl_annotations_ void ShHandleMonitorTrapFlag(
     ShadowHookData* sh_data, const SharedShadowHookData* shared_sh_data,
     EptData* ept_data) {
@@ -290,7 +277,7 @@ _Use_decl_annotations_ void ShHandleMonitorTrapFlag(
   ShpSetMonitorTrapFlag(sh_data, false);
 }
 
-//处理EPT违例VM退出。
+// Handles EPT violation VM-exit.
 _Use_decl_annotations_ void ShHandleEptViolation(
     ShadowHookData* sh_data, const SharedShadowHookData* shared_sh_data,
     EptData* ept_data, void* fault_va) {
@@ -307,17 +294,12 @@ _Use_decl_annotations_ void ShHandleEptViolation(
   // where currently set as execute only for protecting a hook. Let a guest
   // read or write a page from a read/write shadow page and run a single
   // instruction.
-  // EPT违规是因为客户端尝试读取或写入页面
-  // 其中当前设置为仅执行以保护挂钩。 让客人
-  // 从读/写影子页面读取或写入页面并运行一个
-  // 指令。
   ShpEnablePageShadowingForRW(*info, ept_data);
   ShpSetMonitorTrapFlag(sh_data, true);
   ShpSaveLastHookInfo(sh_data, *info);
 }
 
 // Set up inline hook at the address without activating it
-// 在地址处设置内联钩子而不激活它
 _Use_decl_annotations_ EXTERN_C bool ShInstallHook(
     SharedShadowHookData* shared_sh_data, void* address,
     ShadowHookTarget* target) {
@@ -345,25 +327,18 @@ _Use_decl_annotations_ EXTERN_C bool ShInstallHook(
   return true;
 }
 
-// Creates or reuses a couple of copied pages and initializes HookInformation
-// 创建或导致一些复制的页面并初始化Hook信息
+// 创建或重用一些复制的页面并初始化HookInformation
 _Use_decl_annotations_ static std::unique_ptr<HookInformation>
 ShpCreateHookInformation(SharedShadowHookData* shared_sh_data, void* address,
                          ShadowHookTarget* target) {
   auto info = std::make_unique<HookInformation>();
   auto reusable_info = ShpFindPatchInfoByPage(shared_sh_data, address);
   if (reusable_info) {
-    // Found an existing HookInformation object targeting the same page as this
-    // one. re-use shadow pages.
-	// 找到一个目标与此页面相同的现有HookInformation对象
-	// 一个。 重新使用影子页面。
+    //找到一个现有的HookInformation对象，定位与此页面相同的页面。 重新使用影子页面。
     info->shadow_page_base_for_rw = reusable_info->shadow_page_base_for_rw;
     info->shadow_page_base_for_exec = reusable_info->shadow_page_base_for_exec;
   } else {
-    // This hook is for a page that is not currently have any hooks (i.e., not
-    // shadowed). Creates shadow pages.
-	// 此钩子用于当前没有任何钩子的页面（即，不是
-	// shadowed）。 创建影子页。
+    // 此钩子用于当前没有任何钩子的页面（即，不是shadowed）。 创建影子页
     info->shadow_page_base_for_rw = std::make_shared<Page>();
     info->shadow_page_base_for_exec = std::make_shared<Page>();
     auto page_base = PAGE_ALIGN(address);
@@ -379,8 +354,6 @@ ShpCreateHookInformation(SharedShadowHookData* shared_sh_data, void* address,
 
 // Builds a trampoline code for calling an original code and embeds 0xcc on the
 // shadow_exec_page
-// 构建一个trampoline代码，用于调用原始代码并在其上嵌入0xcc
-// shadow_exec_page
 _Use_decl_annotations_ EXTERN_C static bool ShpSetupInlineHook(
     void* patch_address, UCHAR* shadow_exec_page, void** original_call_ptr) {
   PAGED_CODE();
@@ -390,12 +363,11 @@ _Use_decl_annotations_ EXTERN_C static bool ShpSetupInlineHook(
     return false;
   }
 
-  // Build trampoline code (copied stub -> in the middle of original)
-  // 构建trampoline代码（复制的stub - >在原来的中间）
+  // 构建trampoline代码（复制stub - >在原中间）
   const auto jmp_to_original = ShpMakeTrampolineCode(
       reinterpret_cast<UCHAR*>(patch_address) + patch_size);
 #pragma warning(push)
-#pragma warning(disable : 30030)  // Allocating executable POOL_TYPE memory
+#pragma warning(disable : 30030)  // 分配可执行POOL_TYPE内存
   const auto original_call = ExAllocatePoolWithTag(
       NonPagedPoolExecute, patch_size + sizeof(jmp_to_original),
       kHyperPlatformCommonPoolTag);
@@ -404,24 +376,17 @@ _Use_decl_annotations_ EXTERN_C static bool ShpSetupInlineHook(
     return false;
   }
 
-  // Copy original code and embed jump code following original code
-  // 复制原始代码，并在原始代码后面嵌入跳转代码
+  // 复制原始代码并按原始代码嵌入跳转代码
   RtlCopyMemory(original_call, patch_address, patch_size);
 #pragma warning(push)
 #pragma warning(disable : 6386)
-  // Buffer overrun while writing to 'reinterpret_cast<UCHAR
-  // *>original_call+patch_size':  the writable size is
-  // 'patch_size+sizeof((jmp_to_original))' bytes, but '15' bytes might be
-  // written.
-  //写入'reinterpret_cast <UCHAR时缓冲区溢出
-  // *> original_call + patch_size'：可写大小为
-  //'patch_size + sizeof（（jmp_to_original））'字节，但是'15'字节可能
-  //写。
+  // 写入'reinterpret_cast <UCHAR *> original_call + patch_size'时，
+  // 缓冲区溢出：可写大小为“patch_size + sizeof（（jmp_to_original））”
+  // 字节，但可能写入“15”字节。
   RtlCopyMemory(reinterpret_cast<UCHAR*>(original_call) + patch_size,
                 &jmp_to_original, sizeof(jmp_to_original));
 #pragma warning(pop)
 
-  // install patch to shadow page
   // 安装补丁到影子页面
   static const UCHAR kBreakpoint[] = {
       0xcc,
@@ -436,13 +401,11 @@ _Use_decl_annotations_ EXTERN_C static bool ShpSetupInlineHook(
 }
 
 // Returns a size of an instruction at the address
-// 返回地址处指令的大小
 _Use_decl_annotations_ EXTERN_C static SIZE_T ShpGetInstructionSize(
     void* address) {
   PAGED_CODE();
 
   // Save floating point state
-  // 保存浮点状态
   KFLOATING_SAVE float_save = {};
   auto status = KeSaveFloatingPointState(&float_save);
   if (!NT_SUCCESS(status)) {
@@ -450,7 +413,6 @@ _Use_decl_annotations_ EXTERN_C static SIZE_T ShpGetInstructionSize(
   }
 
   // Disassemble at most 15 bytes to get an instruction size
-  // 拆分最多15个字节以获取指令大小
   csh handle = {};
   const auto mode = IsX64() ? CS_MODE_64 : CS_MODE_32;
   if (cs_open(CS_ARCH_X86, mode, &handle) != CS_ERR_OK) {
@@ -470,19 +432,16 @@ _Use_decl_annotations_ EXTERN_C static SIZE_T ShpGetInstructionSize(
   }
 
   // Get a size of the first instruction
-  // 获取第一条指令的大小
   const auto size = instructions[0].size;
   cs_free(instructions, count);
   cs_close(&handle);
 
   // Restore floating point state
-  // 恢复浮点状态
   KeRestoreFloatingPointState(&float_save);
   return size;
 }
 
 // Returns code bytes for inline hooking
-// 返回内联挂钩的代码字节
 _Use_decl_annotations_ EXTERN_C static TrampolineCode ShpMakeTrampolineCode(
     void* hook_handler) {
   PAGED_CODE();
@@ -510,7 +469,6 @@ _Use_decl_annotations_ EXTERN_C static TrampolineCode ShpMakeTrampolineCode(
 }
 
 // Find a HookInformation instance by address
-// 按地址查找Hook信息实例
 _Use_decl_annotations_ static HookInformation* ShpFindPatchInfoByPage(
     const SharedShadowHookData* shared_sh_data, void* address) {
   const auto found = std::find_if(
@@ -525,7 +483,6 @@ _Use_decl_annotations_ static HookInformation* ShpFindPatchInfoByPage(
 }
 
 // Find a HookInformation instance that are on the same page as the address
-// 查找与地址在同一页面上的Hook信息实例
 _Use_decl_annotations_ static HookInformation* ShpFindPatchInfoByAddress(
     const SharedShadowHookData* shared_sh_data, void* address) {
   auto found = std::find_if(
@@ -538,7 +495,6 @@ _Use_decl_annotations_ static HookInformation* ShpFindPatchInfoByAddress(
 }
 
 // Show a shadowed page for execution
-// 显示阴影页面以供执行
 _Use_decl_annotations_ static void ShpEnablePageShadowingForExec(
     const HookInformation& info, EptData* ept_data) {
   const auto ept_pt_entry =
@@ -546,22 +502,17 @@ _Use_decl_annotations_ static void ShpEnablePageShadowingForExec(
 
   // Allow the VMM to redirect read and write access to the address by denying
   // those accesses and handling them on EPT violation
-  // 允许VMM通过拒绝重定向对地址的读写访问
-  // 这些访问并在EPT违例时处理它们
   ept_pt_entry->fields.write_access = false;
   ept_pt_entry->fields.read_access = false;
 
   // Only execution is allowed on the adresss. Show the copied page for exec
   // that has an actual breakpoint to the guest.
-  // 只允许对地址执行。 显示对客户端具有实际断点的exec 
-  // 的复制页面。
   ept_pt_entry->fields.physial_address = UtilPfnFromPa(info.pa_base_for_exec);
 
   UtilInveptGlobal();
 }
 
 // Show a shadowed page for read and write
-// 显示用于读写的阴影页面
 _Use_decl_annotations_ static void ShpEnablePageShadowingForRW(
     const HookInformation& info, EptData* ept_data) {
   const auto ept_pt_entry =
@@ -570,9 +521,6 @@ _Use_decl_annotations_ static void ShpEnablePageShadowingForRW(
   // Allow a guest to read and write as well as execute the address. Show the
   // copied page for read/write that does not have an breakpoint but reflects
   // all modification by a guest if that happened.
-  // 允许客户端读写，以及执行地址。 显示
-  // 复制的页面，用于没有断点但反映的读/写
-  // 客人的所有修改，如果发生了。
   ept_pt_entry->fields.write_access = true;
   ept_pt_entry->fields.read_access = true;
   ept_pt_entry->fields.physial_address = UtilPfnFromPa(info.pa_base_for_rw);
@@ -581,7 +529,6 @@ _Use_decl_annotations_ static void ShpEnablePageShadowingForRW(
 }
 
 // Stop showing a shadow page
-// 停止显示阴影页面
 _Use_decl_annotations_ static void ShpDisablePageShadowing(
     const HookInformation& info, EptData* ept_data) {
   const auto pa_base = UtilPaFromVa(PAGE_ALIGN(info.patch_address));
@@ -594,7 +541,6 @@ _Use_decl_annotations_ static void ShpDisablePageShadowing(
 }
 
 // Set MTF on the current processor
-// 在当前处理器上设置MTF
 _Use_decl_annotations_ static void ShpSetMonitorTrapFlag(
     ShadowHookData* sh_data, bool enable) {
   VmxProcessorBasedControls vm_procctl = {
@@ -604,7 +550,6 @@ _Use_decl_annotations_ static void ShpSetMonitorTrapFlag(
 }
 
 // Saves HookInformation as the last one for reusing it on up coming MTF VM-exit
-// 将Hook信息保存为最后一个在上一个MTF VM退出时重用它的信息
 _Use_decl_annotations_ static void ShpSaveLastHookInfo(
     ShadowHookData* sh_data, const HookInformation& info) {
   NT_ASSERT(!sh_data->last_hook_info);
@@ -612,7 +557,6 @@ _Use_decl_annotations_ static void ShpSaveLastHookInfo(
 }
 
 // Retrieves the last HookInformation
-// 检索最后的Hooke信息
 _Use_decl_annotations_ static const HookInformation* ShpRestoreLastHookInfo(
     ShadowHookData* sh_data) {
   NT_ASSERT(sh_data->last_hook_info);
@@ -622,14 +566,12 @@ _Use_decl_annotations_ static const HookInformation* ShpRestoreLastHookInfo(
 }
 
 // Checks if DdiMon is already initialized
-// 检查DaeMon是否已经初始化
 _Use_decl_annotations_ static bool ShpIsShadowHookActive(
     const SharedShadowHookData* shared_sh_data) {
   return !!(shared_sh_data);
 }
 
 // Allocates a non-paged, page-aligned page. Issues bug check on failure
-// 分配未分页的页面对齐页面。 在失败时发出错误检查
 Page::Page()
     : page(reinterpret_cast<UCHAR*>(ExAllocatePoolWithTag(
           NonPagedPool, PAGE_SIZE, kHyperPlatformCommonPoolTag))) {
@@ -640,5 +582,4 @@ Page::Page()
 }
 
 // De-allocates the allocated page
-//释放分配的页面
 Page::~Page() { ExFreePoolWithTag(page, kHyperPlatformCommonPoolTag); }

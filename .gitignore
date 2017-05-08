@@ -4,3 +4,5 @@
 
 *.db
 /DdiMon.VC.VC.opendb
+*.tlog
+*.tlog

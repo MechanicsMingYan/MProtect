@@ -29,6 +29,7 @@
     <Configuration>Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">Win32</Platform>
     <RootNamespace>DdiMon</RootNamespace>
+    <ProjectName>IntoProtect</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -74,21 +75,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <IncludePath>$(VC_IncludePath);$(IncludePath)</IncludePath>
-    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <IncludePath>$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <IncludePath>$(VC_IncludePath);$(IncludePath)</IncludePath>
-    <Inf2CatUseLocalTime>false</Inf2CatUseLocalTime>
+    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <IncludePath>$(VC_IncludePath);$(IncludePath)</IncludePath>
-    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -99,8 +101,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>VMProtectDDK32.lib;$(OutDir)capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+      <AdditionalDependencies>$(OutDir)capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -112,9 +113,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>VMProtectDDK32.lib;ntstrsafe.lib;$(OutDir)capstone_static_winkernel.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>$(OutDir)capstone_static_winkernel.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -126,7 +125,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>VMProtectDDK64.lib;$(OutDir)capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,7 +137,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>VMProtectDDK64.lib;$(OutDir)capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)capstone_static_winkernel.lib;ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -157,9 +156,6 @@
     <ClCompile Include="..\HyperPlatform\HyperPlatform\vm.cpp" />
     <ClCompile Include="..\HyperPlatform\HyperPlatform\vmm.cpp" />
     <ClCompile Include="ddi_mon.cpp" />
-    <ClCompile Include="ksocket.c" />
-    <ClCompile Include="ktdi.c" />
-    <ClCompile Include="mdk.cpp" />
     <ClCompile Include="shadow_hook.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -170,7 +166,6 @@
     <ClInclude Include="..\HyperPlatform\HyperPlatform\global_object.h" />
     <ClInclude Include="..\HyperPlatform\HyperPlatform\hotplug_callback.h" />
     <ClInclude Include="..\HyperPlatform\HyperPlatform\ia32_type.h" />
-    <ClInclude Include="..\HyperPlatform\HyperPlatform\kernel_stl.h" />
     <ClInclude Include="..\HyperPlatform\HyperPlatform\log.h" />
     <ClInclude Include="..\HyperPlatform\HyperPlatform\performance.h" />
     <ClInclude Include="..\HyperPlatform\HyperPlatform\perf_counter.h" />
@@ -179,11 +174,7 @@
     <ClInclude Include="..\HyperPlatform\HyperPlatform\vm.h" />
     <ClInclude Include="..\HyperPlatform\HyperPlatform\vmm.h" />
     <ClInclude Include="ddi_mon.h" />
-    <ClInclude Include="ksocket.h" />
-    <ClInclude Include="ktdi.h" />
-    <ClInclude Include="mdk.h" />
     <ClInclude Include="shadow_hook.h" />
-    <ClInclude Include="VMProtectDDK.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="..\HyperPlatform\HyperPlatform\Arch\x64\x64.asm">

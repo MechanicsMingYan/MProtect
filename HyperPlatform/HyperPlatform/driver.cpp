@@ -18,11 +18,27 @@
 #include "vm.h"
 #include "performance.h"
 #include "../../DdiMon/ddi_mon.h"
-#include "../../DdiMon/mdk.h"
-#include "../../DdiMon/VMProtectDDK.h"
 
 extern "C" {
+////////////////////////////////////////////////////////////////////////////////
+//
+// macro utilities
+//
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// constants and macros
+//
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// types
+//
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// prototypes
+//
 
 DRIVER_INITIALIZE DriverEntry;
 
@@ -30,62 +46,62 @@ static DRIVER_UNLOAD DriverpDriverUnload;
 
 _IRQL_requires_max_(PASSIVE_LEVEL) bool DriverpIsSuppoetedOS();
 
-
 #if defined(ALLOC_PRAGMA)
 #pragma alloc_text(INIT, DriverEntry)
 #pragma alloc_text(PAGE, DriverpDriverUnload)
 #pragma alloc_text(INIT, DriverpIsSuppoetedOS)
 #endif
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// variables
+//
+NOTIFY_HANDLE g_NotifyHandle;
+
+PDEVICE_OBJECT g_Device_Object = 0;
 UNICODE_STRING g_SymLinkName;
 
 
 
 _Use_decl_annotations_ static NTSTATUS CreateDevice(IN PDRIVER_OBJECT pDriverObject)
 {
-	VMProtectBegin("CreateDevice");
-	PDEVICE_OBJECT pDevObj = 0;
+	//VMProtectBegin("CreateDevice");
+	
 
 	UNICODE_STRING devName;
 
-	RtlInitUnicodeString(&devName, L"\\Device\\MProtect");
+	RtlInitUnicodeString(&devName, L"\\Device\\IntoProtect");
 
-	auto status = IoCreateDevice(pDriverObject, 0, &devName, FILE_DEVICE_UNKNOWN, 0, TRUE, &pDevObj);
+	auto status = IoCreateDevice(pDriverObject, 0, &devName, FILE_DEVICE_UNKNOWN, 0, TRUE, &g_Device_Object);
 
 	if (!NT_SUCCESS(status)) {
 		HYPERPLATFORM_LOG_INFO("CreateDevice Error:%x %x\n", NT_SUCCESS(status), status);
 		return status;
 	}
 
-	pDevObj->Flags |= DO_BUFFERED_IO;
+	g_Device_Object->Flags |= DO_BUFFERED_IO;
 
-	RtlInitUnicodeString(&g_SymLinkName, L"\\??\\MProtect");
+	RtlInitUnicodeString(&g_SymLinkName, L"\\??\\IntoProtect");
 
 	status = IoCreateSymbolicLink(&g_SymLinkName, &devName);
 	if (!NT_SUCCESS(status)) {
 		HYPERPLATFORM_LOG_INFO("CreateDevice Error:%x %x\n", NT_SUCCESS(status), status);
-		IoDeleteDevice(pDevObj);
+		IoDeleteDevice(g_Device_Object);
 		return status;
 	}
 
 	HYPERPLATFORM_LOG_INFO("Create Device Sucess");
-	VMProtectEnd();
+	//VMProtectEnd();
 
 	return STATUS_SUCCESS;
 }
-
-_Use_decl_annotations_ EXTERN_C NTSTATUS PassiveSoke(){
-	VMProtectBegin("Driver_Dispatch");
-
-
-
-	VMProtectEnd();
-	return STATUS_SUCCESS;
-}
-
+////////////////////////////////////////////////////////////////////////////////
+//
+// implementations
+//
 _Use_decl_annotations_ static NTSTATUS Driver_Dispatch(IN PDEVICE_OBJECT pDevObj, IN PIRP pIrp)
 {
-	VMProtectBegin("Driver_Dispatch");
+	//VMProtectBegin("Driver_Dispatch");
 	HYPERPLATFORM_LOG_INFO("My::Driver_Dispatch\n");
 	auto stack = IoGetCurrentIrpStackLocation(pIrp);
 	ULONG uPass = FALSE;
@@ -96,7 +112,6 @@ _Use_decl_annotations_ static NTSTATUS Driver_Dispatch(IN PDEVICE_OBJECT pDevObj
 	TRY_SOKE * pSoke = 0;
 	auto AllowRemove = 0;
 	PUNICODE_STRING strOperater = 0;
-	MDK_READWRITE_RET ret = { 0 };
 	if (IRP_MJ_DEVICE_CONTROL == stack->MajorFunction) {
 		auto BufferLenth = stack->Parameters.DeviceIoControl.InputBufferLength;
 		auto uIoControlCode = stack->Parameters.DeviceIoControl.IoControlCode;
@@ -123,15 +138,6 @@ _Use_decl_annotations_ static NTSTATUS Driver_Dispatch(IN PDEVICE_OBJECT pDevObj
 			hNotifyUserEvent = (HANDLE)pNotifyHandle32->m_dwNotify;
 			ObReferenceObjectByHandle(hOtherBrowserEvent, EVENT_MODIFY_STATE, *ExEventObjectType, pIrp->RequestorMode, (PVOID *)&g_NotifyHandle.m_dwEvent, NULL);
 			ObReferenceObjectByHandle(hNotifyUserEvent, EVENT_MODIFY_STATE, *ExEventObjectType, pIrp->RequestorMode, (PVOID *)&g_NotifyHandle.m_dwNotify, NULL);
-
-			//HANDLE threadHandle = NULL;
-			//auto lstatus = PsCreateSystemThread(&threadHandle,
-			//	0,
-			//	NULL, //或者THREAD_ALL_ACCESS  
-			//	NtCurrentProcess(),
-			//	NULL,
-			//	(PKSTART_ROUTINE)PassiveSoke,
-			//	NULL);
 		}
 		else if (IOCTL_MPROTECT_USERCHOICE == uIoControlCode) {
 			if (BufferLenth < true) {
@@ -143,45 +149,17 @@ _Use_decl_annotations_ static NTSTATUS Driver_Dispatch(IN PDEVICE_OBJECT pDevObj
 			Buffer = (PUCHAR)pIrp->AssociatedIrp.SystemBuffer;
 			g_NotifyHandle.m_uPass = *Buffer;
 		}
-		else if (IOCTL_MPROTECT_ADD_PROTECTION == uIoControlCode) {
-			HYPERPLATFORM_LOG_INFO("IOCTL_MPROTECT_ADD_PROTECTION\n");
-			if (BufferLenth < sizeof(TRY_SOKE)) {
-				pIrp->IoStatus.Status = STATUS_SUCCESS;
-				pIrp->IoStatus.Information = 0;
-				IoCompleteRequest(pIrp, IO_NO_INCREMENT);
-				return STATUS_SUCCESS;
+		else if (IOCTL_MPROTECT_UNEVENT == uIoControlCode) {
+			if (g_NotifyHandle.m_dwEvent || g_NotifyHandle.m_dwNotify) {
+				//如果以前此事件被设置过，那么应该先解除引用
+				ObDereferenceObject((PVOID)g_NotifyHandle.m_dwEvent);
+				g_NotifyHandle.m_dwEvent = 0;
+				ObDereferenceObject((PVOID)g_NotifyHandle.m_dwNotify);
+				g_NotifyHandle.m_dwNotify = 0;
+				g_NotifyHandle.m_uPass = 0;
 			}
-
-			Buffer = (PUCHAR)pIrp->AssociatedIrp.SystemBuffer;
-			pSoke = (TRY_SOKE*)Buffer;
-			DdimonpAddProtection(*pSoke);
-			pSoke = nullptr;
-
-			pIrp->IoStatus.Status = STATUS_SUCCESS;
-			pIrp->IoStatus.Information = sizeof(ULONG);
-			RtlCopyMemory(pIrp->AssociatedIrp.SystemBuffer, &uPass, sizeof(ULONG));
-
-			IoCompleteRequest(pIrp, IO_NO_INCREMENT);
-			return STATUS_SUCCESS;
 		}
-		else if (IOCTL_MPROTECT_RESET_PROTECTION == uIoControlCode) {
-
-			HYPERPLATFORM_LOG_INFO("IOCTL_MPROTECT_RESET_PROTECTION\n");
-			DdimonpResetProtection();
-
-			pIrp->IoStatus.Status = STATUS_SUCCESS;
-			pIrp->IoStatus.Information = sizeof(ULONG);
-			RtlCopyMemory(pIrp->AssociatedIrp.SystemBuffer, &uPass, sizeof(ULONG));
-
-			IoCompleteRequest(pIrp, IO_NO_INCREMENT);
-			return STATUS_SUCCESS;
-		}
-		else if (Mdk_Dispatch(uIoControlCode, pIrp, &ret)) {
-
-			pIrp->IoStatus.Status = STATUS_SUCCESS;
-			pIrp->IoStatus.Information = sizeof(ret);
-			RtlCopyMemory(pIrp->AssociatedIrp.SystemBuffer, &ret, sizeof(ret));
-			IoCompleteRequest(pIrp, IO_NO_INCREMENT);
+		else if (DdiDispatch(pIrp)) {
 			return STATUS_SUCCESS;
 		}
 		else {
@@ -191,22 +169,31 @@ _Use_decl_annotations_ static NTSTATUS Driver_Dispatch(IN PDEVICE_OBJECT pDevObj
 			return STATUS_INVALID_VARIANT;
 		}
 	}
+	else if (IRP_MJ_CLOSE == stack->MajorFunction) {
+		if (g_NotifyHandle.m_dwEvent || g_NotifyHandle.m_dwNotify) {
+			//如果以前此事件被设置过，那么应该先解除引用
+			ObDereferenceObject((PVOID)g_NotifyHandle.m_dwEvent);
+			g_NotifyHandle.m_dwEvent = 0;
+			ObDereferenceObject((PVOID)g_NotifyHandle.m_dwNotify);
+			g_NotifyHandle.m_dwNotify = 0;
+			g_NotifyHandle.m_uPass = 0;
+		}
+	}
 
 	pIrp->IoStatus.Status = STATUS_SUCCESS;
 	pIrp->IoStatus.Information = 0;
 	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 
-	VMProtectEnd();
 	return STATUS_SUCCESS;
 }
 
-
+// A driver entry point
 _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
                                             PUNICODE_STRING registry_path) {
   UNREFERENCED_PARAMETER(registry_path);
   PAGED_CODE();
-  VMProtectBegin("DriverEntry");
-  static const wchar_t kLogFilePath[] = L"\\SystemRoot\\MProtect.log";
+
+  static const wchar_t kLogFilePath[] = L"\\SystemRoot\\IntoProtect.log";
   static const auto kLogLevel =
       (IsReleaseBuild()) ? kLogPutLevelInfo | kLogOptDisableFunctionName
                          : kLogPutLevelDebug | kLogOptDisableFunctionName;
@@ -217,13 +204,12 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   driver_object->MajorFunction[IRP_MJ_CREATE] = Driver_Dispatch;
   driver_object->MajorFunction[IRP_MJ_CLOSE] = Driver_Dispatch;
   HYPERPLATFORM_COMMON_DBG_BREAK();
-  
+
   status = CreateDevice(driver_object);
   if (!NT_SUCCESS(status)) {
 	  HYPERPLATFORM_LOG_INFO("CreateDevice Error\n");
 	  return status;
   }
-  
 
   // Request NX Non-Paged Pool when available
   ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
@@ -300,14 +286,12 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
     return status;
   }
 
-
-  
   // Register re-initialization for the log functions if needed
   if (need_reinitialization) {
     LogRegisterReinitialization(driver_object);
   }
+
   HYPERPLATFORM_LOG_INFO("The VMM has been installed.");
-  VMProtectEnd();
   return status;
 }
 
@@ -316,10 +300,11 @@ _Use_decl_annotations_ static void DriverpDriverUnload(
     PDRIVER_OBJECT driver_object) {
   UNREFERENCED_PARAMETER(driver_object);
   PAGED_CODE();
-  VMProtectBegin("DriverpDriverUnload");
+
   HYPERPLATFORM_COMMON_DBG_BREAK();
 
-
+  IoDeleteDevice(g_Device_Object);
+  IoDeleteSymbolicLink(&g_SymLinkName);
   VmTermination();
   HotplugCallbackTermination();
   PowerCallbackTermination();
@@ -327,13 +312,12 @@ _Use_decl_annotations_ static void DriverpDriverUnload(
   PerfTermination();
   GlobalObjectTermination();
   LogTermination();
-  VMProtectEnd();
 }
 
 // Test if the system is one of supported OS versions
 _Use_decl_annotations_ bool DriverpIsSuppoetedOS() {
   PAGED_CODE();
-  VMProtectBegin("DriverEntry");
+
   RTL_OSVERSIONINFOW os_version = {};
   auto status = RtlGetVersion(&os_version);
   if (!NT_SUCCESS(status)) {
@@ -347,10 +331,7 @@ _Use_decl_annotations_ bool DriverpIsSuppoetedOS() {
       reinterpret_cast<ULONG_PTR>(MmSystemRangeStart) != 0x80000000) {
     return false;
   }
-  VMProtectEnd();
   return true;
 }
-
-
 
 }  // extern "C"
